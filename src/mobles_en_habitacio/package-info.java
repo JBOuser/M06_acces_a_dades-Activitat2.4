@@ -1,1 +1,0 @@
-package mobles_en_habitacio;

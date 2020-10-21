@@ -1,10 +1,14 @@
 package mobles_en_habitacio;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -17,7 +21,7 @@ public class Habitacio {
 	private String nom = "";
 	
 	List<Moble> mobles = new ArrayList<Moble>();
-	String[] properties = new String[]{"ample","llarg","nom"};
+	String[] properties = new String[]{"ample","llarg","nom","quantitat_mobles"};
 
 	public Habitacio(){}
 	
@@ -39,7 +43,19 @@ public class Habitacio {
 	public void setNom(String nom) {
 		this.nom = nom;
 	}
+	
+	public List<Moble> getMobles() {
+		return mobles;
+	}
 
+	public String[] getProperties() {
+		return properties;
+	}
+
+	public void setProperties(String[] properties) {
+		this.properties = properties;
+	}	
+		
 	
 	@Override
 	public String toString() {
@@ -55,6 +71,16 @@ public class Habitacio {
 		return mobles.size();
 	}
 	
+
+	//Load default values for the room
+	public void loadRoomDefaultValues()
+	{
+		this.setAmple(3.0);
+		this.setLlarg(6.0);
+		this.setNom("Main room");
+	}
+	
+	
 	public void addNewMoble() {
 		
 		Moble moble = new Moble();
@@ -63,104 +89,9 @@ public class Habitacio {
 	
 		System.out.println("Moble added -- OK\n");
 	}	
-	
-	public void openRoom(String pathFile)
-	{
-		File f = new File(pathFile);
-		
-		//check if file exists and if is a file
-		if (f.exists() && f.isFile())
-		{
-			DataInputStream dis = null;
-			try 
-			{
-				dis = Main.getDISFromFile(pathFile); //returns FileNotFoundException
-				this.setAmple(dis.readDouble());
-				this.setLlarg(dis.readDouble());
-				this.setNom(dis.readUTF());
-				
-				int size = (int) dis.readInt();
-				for(int i = 0; i < size; i++)
-				{
-					Moble moble = new Moble();
-					moble.setAmple(dis.readDouble());
-					moble.setLlarg(dis.readDouble());
-					moble.setColor(dis.readInt());
-					this.addMoble(moble);
-				}
-			}
-			catch(Exception e)
-			{
-				System.out.println("Room not opened -- ERROR ("+e+")\n");
-			}
-			finally 
-			{
-				try 
-				{
-					dis.close();
-				}
-				catch(Exception e)
-				{
-					System.out.println("DIS not closed -- ERROR ("+e+")\n");
-				}
-			}
 
-			System.out.println("Existing room\n");
-		}
-		else
-		{
-			this.setAmple(3.0);
-			this.setLlarg(6.0);
-			this.setNom("Main Room");
-			
-			System.out.println("New Room added\n");
-		}
-	}
-	
-	public void writeRoom(DataOutputStream dos)
-	{
-		try 
-		{
-			dos.writeDouble(this.getAmple());
-			dos.writeDouble(this.getLlarg());
-			dos.writeUTF(this.getNom());
-			dos.writeInt(this.getQuantitatMobles());
-			for(Moble moble : mobles)
-			{
-				dos.writeDouble(moble.getAmple());
-				dos.writeDouble(moble.getLlarg());
-				dos.writeInt(moble.getColor());
-			}		
-			System.out.println("Data saved -- OK\n");
-		}		
-		catch(Exception e)
-		{
-			System.out.println("Write ERROR ("+e+")\n");
-		}
-		finally 
-		{
-			if(dos != null)
-			{
-				try 
-				{
-					dos.close();
-				}
-				catch(Exception e)
-				{
-					System.out.println("DOS not closed -- ERROR ("+e+")");
-				}			
-			}
-		}
-	}
-	
-	public void readRoom()
-	{
-		System.out.println("HABITACIÓ");
-		System.out.println(this.toString());
-		this.llistaMobles();
-	}	
-	
 
+	//list each Moble data from mobles ArrayList
 	public void llistaMobles()
 	{
 		System.out.println("MOBLES");
@@ -180,40 +111,132 @@ public class Habitacio {
 		}
 		System.out.println("\n");
 	}
+
+	
+	//write loaded data in a properties file
+	public void writeProperties(String pathFile)
+	{
+		try {
+			OutputStream outData = new BufferedOutputStream(new FileOutputStream(pathFile));
+			Properties fileProperties = new Properties();
+
+			fileProperties.setProperty(properties[0], String.valueOf(this.getAmple())); //ample
+			fileProperties.setProperty(properties[1], String.valueOf(this.getLlarg()));
+			fileProperties.setProperty(properties[2], this.getNom());
+			fileProperties.setProperty(properties[3], String.valueOf(this.getMobles().size()));
+			
+			//second param is for comments (null)
+			fileProperties.store(outData, null);
+		}
+		catch(Exception e)
+		{
+			System.out.println("Properties not saved ("+e+")\n");
+		}
+	}	
 	
 	
+	//read the properties file's content and load its data	
 	public void readProperties(String pathFile)
 	{
-		File propertyFile = new File(pathFile);
-		if(propertyFile.exists() && propertyFile.isFile())
-			
-			try {
-				InputStream inData = new FileInputStream(propertyFile); //Data of properties's file
-				Properties fileProperties = new Properties();
+		try {
+			InputStream inData = new BufferedInputStream(new FileInputStream(pathFile)); //Data of properties's file
+			Properties fileProperties = new Properties();
 
-				//load data from properties
-				fileProperties.load(inData);
-				
-				for(int i = 0; i < properties.length; i++)
+			//load data from properties
+			fileProperties.load(inData);
+
+			this.setAmple(Double.parseDouble(fileProperties.getProperty(properties[0])));
+			this.setLlarg(Double.parseDouble(fileProperties.getProperty(properties[1])));
+			this.setNom(fileProperties.getProperty(properties[2]));
+		}
+		catch(Exception e)
+		{
+			System.out.println("Properties not loaded ("+e+")\n");
+		}
+	}	
+
+	
+	//write loaded data to the file pathFile's path
+	public void writeMobles(String pathFile)
+	{
+		DataOutputStream dos = null;
+		try 
+		{
+			dos = Main.getDOSFromFile(pathFile);
+			dos.writeInt(this.getMobles().size());
+			for(Moble moble : this.getMobles())
+			{
+				dos.writeDouble(moble.getAmple());
+				dos.writeDouble(moble.getLlarg());
+				dos.writeInt(moble.getColor());
+			}
+			System.out.println("Mobiliari saved -- OK\n");
+		}
+		catch(Exception e)
+		{
+			System.out.println("Moble not Saved -- ERROR("+e+")\n");
+		}
+		finally
+		{
+			if(dos != null)
+			{
+				try
 				{
-					System.out.println(fileProperties.getProperty(properties[i]));
+					dos.close();
 				}
-				
+				catch(Exception e)
+				{
+					System.out.println("DOS not closed ("+e+")\n");
+				}
+			}				
+		}
+	}
+	
+	
+	//check if entered pathFile is a file in order to read it and load its data
+	public void readMobles(String pathFile)
+	{
+		File file = new File(pathFile);
+		if(file.exists() && file.isFile())
+		{
+			DataInputStream dis = null;
+			try {
+				dis = Main.getDISFromFile(pathFile); //Data of properties's file
+
+				int size = dis.readInt();
+				for(int i = 0; i < size; i++)
+				{
+					Moble moble = new Moble();
+					
+					moble.setAmple(dis.readDouble());
+					moble.setLlarg(dis.readDouble());
+					moble.setColor(dis.readInt());
+					this.addMoble(moble);
+				}
 			}
 			catch(Exception e)
 			{
-				System.out.println("Properties not loaded");
+				System.out.println("Mobles not loaded ("+e+")\n");
 			}
+			finally
+			{
+				if(dis != null)
+				{
+					try
+					{
+						dis.close();
+					}
+					catch(Exception e)
+					{
+						System.out.println("DOS not closed ("+e+")\n");
+					}
+				}				
+			}
+		}
 		else
 		{
-			System.out.println("File not found ("+propertyFile.getAbsolutePath()+")");
-		}	
-	}
-	
-	
-	public String[] getProperties()
-	{
-		return this.properties;
-	}
-	
+			System.out.println("No Mobles file\n");
+		}
+	}	
+
 }

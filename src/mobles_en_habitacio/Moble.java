@@ -38,9 +38,11 @@ public class Moble {
 
 	@Override
 	public String toString() {
-		return "Moble [ample=" + ample + ", llarg=" + llarg + ", color=" + color + "]\n";
+		return "Moble [ample=" + ample + ", llarg=" + llarg + ", color=" + color + "]";
 	}
 	
+	
+	//ask user to enter Moble's data
 	public void setNewMoble()
 	{
 		this.ample = Double.parseDouble(Main.getStringFromScanner("Introdueix la amplada del moble (double): "));
@@ -48,6 +50,8 @@ public class Moble {
 		this.color = Integer.parseInt(Main.getStringFromScanner("Introdueix el color del moble (int 0-9): "));		
 	}
 	
+	
+	//write Moble data into a file
 	public void writeMoble(DataOutputStream dos)
 	{
 		try 
