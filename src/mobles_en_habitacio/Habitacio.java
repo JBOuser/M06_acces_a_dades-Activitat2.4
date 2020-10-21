@@ -3,8 +3,11 @@ package mobles_en_habitacio;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 
 public class Habitacio {
@@ -14,6 +17,7 @@ public class Habitacio {
 	private String nom = "";
 	
 	List<Moble> mobles = new ArrayList<Moble>();
+	String[] properties = new String[]{"ample","llarg","nom"};
 
 	public Habitacio(){}
 	
@@ -152,7 +156,7 @@ public class Habitacio {
 	public void readRoom()
 	{
 		System.out.println("HABITACIÓ");
-		System.out.println("Amplada: "+this.toString());
+		System.out.println(this.toString());
 		this.llistaMobles();
 	}	
 	
@@ -170,11 +174,46 @@ public class Habitacio {
 			int i = 0;
 			for(Moble moble : mobles)
 			{
-				System.out.println("Moble "+(i+1)+":");
-				System.out.println(moble.toString());
+				System.out.println((i+1)+". "+moble.toString());
 				i++;
 			}			
 		}
 		System.out.println("\n");
 	}
+	
+	
+	public void readProperties(String pathFile)
+	{
+		File propertyFile = new File(pathFile);
+		if(propertyFile.exists() && propertyFile.isFile())
+			
+			try {
+				InputStream inData = new FileInputStream(propertyFile); //Data of properties's file
+				Properties fileProperties = new Properties();
+
+				//load data from properties
+				fileProperties.load(inData);
+				
+				for(int i = 0; i < properties.length; i++)
+				{
+					System.out.println(fileProperties.getProperty(properties[i]));
+				}
+				
+			}
+			catch(Exception e)
+			{
+				System.out.println("Properties not loaded");
+			}
+		else
+		{
+			System.out.println("File not found ("+propertyFile.getAbsolutePath()+")");
+		}	
+	}
+	
+	
+	public String[] getProperties()
+	{
+		return this.properties;
+	}
+	
 }
