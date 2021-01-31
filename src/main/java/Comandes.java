@@ -10,6 +10,7 @@ import javax.persistence.Table;
 import javax.persistence.TemporalType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 import javax.persistence.JoinColumn;
 import javax.persistence.Temporal;
@@ -55,8 +56,8 @@ public class Comandes implements java.io.Serializable {
 		this.numComanda = numComanda;
 	}
 
-	@ManyToOne
-	@JoinColumn(name="dni_client",nullable=false)
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name="dni_client")
 	public Clients getClients() {
 		return this.clients;
 	}
